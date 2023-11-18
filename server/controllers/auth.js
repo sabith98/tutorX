@@ -16,32 +16,23 @@ export const register = async (req, res) => {
       occupation,
     } = req.body;
 
-    // Check if the user already exists
-    const existingUser = await User.findOne({ email: email });
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(password, salt);
 
-    if (existingUser) {
-      return res.status(400).json({ msg: 'User with this email already exists' });
-    }
-    else {
-      const salt = await bcrypt.genSalt();
-      const passwordHash = await bcrypt.hash(password, salt);
-
-      const newUser = new User({
-        firstName,
-        lastName,
-        email,
-        password: passwordHash,
-        picturePath,
-        friends,
-        location,
-        occupation,
-        viewedProfile: Math.floor(Math.random() * 10000),
-        impressions: Math.floor(Math.random() * 10000),
-      });
-      const savedUser = await newUser.save();
-      res.status(201).json(savedUser);
-    }
-
+    const newUser = new User({
+      firstName,
+      lastName,
+      email,
+      password: passwordHash,
+      picturePath,
+      friends,
+      location,
+      occupation,
+      viewedProfile: Math.floor(Math.random() * 10000),
+      impressions: Math.floor(Math.random() * 10000),
+    });
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
