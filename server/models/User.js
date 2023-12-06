@@ -20,6 +20,7 @@ const UserSchema = new mongoose.Schema(
       max: 50,
       unique: true,
     },
+    phone: String,
     password: {
       type: String,
       required: true,
@@ -35,8 +36,25 @@ const UserSchema = new mongoose.Schema(
     },
     location: String,
     occupation: String,
+    hourlyRate: Number,
     viewedProfile: Number,
     impressions: Number,
+    ratings: [
+      {
+        rating: {
+          type: Number,
+          required: true,
+        },
+        review: {
+          type: String,
+          default: "",
+        },
+        reviewer: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

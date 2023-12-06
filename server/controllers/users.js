@@ -61,3 +61,26 @@ export const addRemoveFriend = async (req, res) => {
     res.status(404).json({ message: err.message });
   }
 };
+
+export const addRating = async (req, res) => {
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.ratings.push({
+      rating,
+      review,
+      reviewer: req.user._id,
+    });
+
+    await user.save();
+
+    return res.status(200).json({ message: 'Rating and review added successfully' });
+  } catch (error) {
+    console.error('Error adding rating and review:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}

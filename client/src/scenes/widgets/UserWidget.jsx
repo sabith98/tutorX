@@ -3,7 +3,10 @@ import {
   EditOutlined,
   LocationOnOutlined,
   WorkOutlineOutlined,
+  PaymentOutlined,
 } from "@mui/icons-material";
+import CallOutlinedIcon from '@mui/icons-material/CallOutlined';
+import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import { Box, Typography, Divider, useTheme } from "@mui/material";
 import UserImage from "components/UserImage";
 import FlexBetween from "components/FlexBetween";
@@ -42,7 +45,9 @@ const UserWidget = ({ userId, picturePath }) => {
     firstName,
     lastName,
     location,
+    phone,
     occupation,
+    hourlyRate,
     viewedProfile,
     impressions,
     friends,
@@ -86,10 +91,20 @@ const UserWidget = ({ userId, picturePath }) => {
           <LocationOnOutlined fontSize="large" sx={{ color: main }} />
           <Typography color={medium}>{location}</Typography>
         </Box>
-        <Box display="flex" alignItems="center" gap="1rem">
+        <Box display="flex" alignItems="center" gap="1rem" mb="0.5rem">
+          <CallOutlinedIcon fontSize="large" sx={{ color: main }} />
+          <Typography color={medium}>{phone}</Typography>
+        </Box>
+        <Box display="flex" alignItems="center" gap="1rem" mb="0.5rem">
           <WorkOutlineOutlined fontSize="large" sx={{ color: main }} />
           <Typography color={medium}>{occupation}</Typography>
         </Box>
+        {occupation === "Tutor" && (
+          <Box display="flex" alignItems="center" gap="1rem">
+          <PaymentsOutlinedIcon fontSize="large" sx={{ color: main }} />
+          <Typography color={medium}>$ {hourlyRate} / h</Typography>
+        </Box>
+        )}
       </Box>
 
       <Divider />

@@ -9,11 +9,13 @@ export const register = async (req, res) => {
       firstName,
       lastName,
       email,
+      phone,
       password,
       picturePath,
       friends,
       location,
       occupation,
+      hourlyRate
     } = req.body;
 
     const salt = await bcrypt.genSalt();
@@ -23,11 +25,13 @@ export const register = async (req, res) => {
       firstName,
       lastName,
       email,
+      phone,
       password: passwordHash,
       picturePath,
       friends,
       location,
       occupation,
+      hourlyRate,
       viewedProfile: Math.floor(Math.random() * 10000),
       impressions: Math.floor(Math.random() * 10000),
     });

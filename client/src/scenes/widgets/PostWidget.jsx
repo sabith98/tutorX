@@ -19,6 +19,7 @@ const PostWidget = ({
   description,
   location,
   picturePath,
+  videoPath,
   userPicturePath,
   likes,
   comments,
@@ -64,8 +65,21 @@ const PostWidget = ({
           height="auto"
           alt="post"
           style={{ borderRadius: "0.75rem", marginTop: "0.75rem" }}
-          src={`http://localhost:3001/assets/${picturePath}`}
+          // src={`http://localhost:3001/assets/${picturePath}`}
+          src={picturePath}
         />
+      )}
+      {videoPath && (
+        <video
+          width="100%"
+          height="auto"
+          controls
+          style={{ borderRadius: "0.75rem", marginTop: "0.75rem" }}
+        >
+          {/* <source src={`http://localhost:3001/assets/${videoPath}`} type="video/mp4" /> */}
+          <source src={videoPath} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       )}
       <FlexBetween mt="0.25rem">
         <FlexBetween gap="1rem">

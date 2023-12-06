@@ -3,9 +3,16 @@ import {
   Box,
   Button,
   TextField,
+  MenuItem,
   useMediaQuery,
   Typography,
   useTheme,
+  Select,
+  FormControl,
+  InputLabel,
+  FilledInput,
+  InputAdornment,
+  OutlinedInput,
 } from "@mui/material";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { Formik } from "formik";
@@ -20,9 +27,12 @@ const registerSchema = yup.object().shape({
   firstName: yup.string().required("required"),
   lastName: yup.string().required("required"),
   email: yup.string().email("invalid email").required("required"),
+  phone: yup.string(),
   password: yup.string().required("required"),
   location: yup.string().required("required"),
-  occupation: yup.string().required("required"),
+  // occupation: yup.string().required("required"),
+  hourlyRate: yup.number().required().positive(),
+  occupation: yup.string(),
   picture: yup.string().required("required"),
 });
 
@@ -35,8 +45,10 @@ const initialValuesRegister = {
   firstName: "",
   lastName: "",
   email: "",
+  phone: "",
   password: "",
   location: "",
+  hourlyRate: 0,
   occupation: "",
   picture: "",
 };
@@ -54,6 +66,8 @@ const Form = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const isLogin = pageType === "login";
   const isRegister = pageType === "register";
+
+  const [occupation, setOccupation] = useState("Student");
 
   const register = async (values, onSubmitProps) => {
     // this allows us to send form info with image
@@ -162,7 +176,7 @@ const Form = () => {
                   helperText={touched.location && errors.location}
                   sx={{ gridColumn: "span 4" }}
                 />
-                <TextField
+                {/* <TextField
                   label="Occupation"
                   onBlur={handleBlur}
                   onChange={handleChange}
@@ -173,7 +187,56 @@ const Form = () => {
                   }
                   helperText={touched.occupation && errors.occupation}
                   sx={{ gridColumn: "span 4" }}
-                />
+                /> */}
+                {/* <TextField
+                  id="outlined-select-occupation"
+                  select
+                  label="Account type"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.occupation}
+                  name="occupation"
+                  defaultValue="Student"
+                  sx={values.occupation === "Tutor" ? { gridColumn: "span 2" } : { gridColumn: "span 4" }}
+                // sx={{ gridColumn: "span 2" }}
+                >
+                  <MenuItem key="Student" value="Student">
+                    Student
+                  </MenuItem>
+                  <MenuItem key="Tutor" value="Tutor">
+                    Tutor
+                  </MenuItem>
+                </TextField> */}
+
+                {values.occupation === "Tutor" && (
+                  <FormControl fullWidth sx={{ gridColumn: "span 2" }}>
+                    <InputLabel htmlFor="outlined-adornment-amount">Hourly rate</InputLabel>
+                    <OutlinedInput
+                      id="outlined-adornment-amount"
+                      startAdornment={<InputAdornment position="start">$</InputAdornment>}
+                      label="Hourly rate"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      name="hourlyRate"
+                      value={values.hourlyRate}
+                    />
+                  </FormControl>
+                )}
+
+                {/* <FormControl sx={{ gridColumn: "span 4" }}>
+                  <InputLabel id="demo-simple-select-label">Account type</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={occupation}
+                    name="occupation"
+                    label="Age"
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="Student">Student</MenuItem>
+                    <MenuItem value="Tutor">Tutor</MenuItem>
+                  </Select>
+                </FormControl> */}
                 <Box
                   gridColumn="span 4"
                   border={`1px solid ${palette.neutral.medium}`}
@@ -207,6 +270,16 @@ const Form = () => {
                     )}
                   </Dropzone>
                 </Box>
+                <TextField
+                  label="Phone"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.phone}
+                  name="phone"
+                  error={Boolean(touched.phone) && Boolean(errors.phone)}
+                  helperText={touched.phone && errors.phone}
+                  sx={{ gridColumn: "span 4" }}
+                />
               </>
             )}
 
