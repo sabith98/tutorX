@@ -112,6 +112,44 @@ export const login = (email: string, password: string) => async (dispatch: any) 
   }
 };
 
+export const register = (
+  name: string, 
+  email: string, 
+  password: string, 
+  isTutor: boolean, 
+  hourlyRate?: number
+) => async (dispatch: any) => {
+  dispatch(setLoading(true));
+  
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check if email already exists
+    if (DEMO_USERS.some(u => u.email === email)) {
+      toast.error('Email already registered');
+      throw new Error('Email already registered');
+    }
+    
+    // Create new user
+    const newUser: User = {
+      id: Date.now().toString(),
+      name,
+      email,
+      isTutor,
+      hourlyRate: isTutor ? hourlyRate : undefined,
+      followers: 0,
+      following: 0,
+    };
+    
+    dispatch(setUser(newUser));
+    toast.success('Account created successfully');
+    return true;
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
 export const resetPassword = (email: string) => async (dispatch: any) => {
   dispatch(setLoading(true));
   
