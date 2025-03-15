@@ -150,4 +150,25 @@ export const register = (
   }
 };
 
+export const resetPassword = (email: string) => async (dispatch: any) => {
+  dispatch(setLoading(true));
+  
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const userExists = DEMO_USERS.some(u => u.email === email);
+    
+    if (userExists) {
+      toast.success('Password reset link sent to your email');
+      return true;
+    } else {
+      toast.error('Email not found');
+      throw new Error('Email not found');
+    }
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
 export default authSlice.reducer;
