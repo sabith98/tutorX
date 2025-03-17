@@ -1,6 +1,16 @@
 
 import { Request, Response } from 'express';
 import { PostModel } from '../models/Post';
+import { z } from 'zod';
+
+
+// Validation schemas
+const createPostSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100, 'Title cannot be more than 100 characters'),
+  description: z.string().min(1, 'Description is required').max(500, 'Description cannot be more than 500 characters'),
+  videoUrl: z.string().url('Invalid video URL'),
+  thumbnailUrl: z.string().url('Invalid thumbnail URL'),
+});
 
 // @desc    Get all posts
 // @route   GET /api/posts
@@ -45,6 +55,31 @@ export const getPostById = async (req: Request, res: Response) => {
     
     res.status(200).json({ success: true, data: post });
   } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Create a post
+// @route   POST /api/posts
+// @access  Private
+export const createPost = async (req: Request, res: Response) => {
+  try {
+    // Validate request body
+    const validatedData = createPostSchema.parse(req.body);
+    
+    const post = await PostModel.create({
+      title: validatedData.title,
+      description: validatedData.description,
+      videoUrl: validatedData.videoUrl,
+      thumbnailUrl: validatedData.thumbnailUrl,
+      author: req.user.id,
+    });
+    
+    res.status(201).json({ success: true, data: post });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: error.errors[0].message });
+    }
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
