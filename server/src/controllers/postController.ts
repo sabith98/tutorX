@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { PostModel } from '../models/Post';
 import { z } from 'zod';
 import { CommentModel } from '../models/Comment';
+import { UserModel } from '../models/User';
 
 
 // Validation schemas
@@ -180,3 +181,30 @@ export const likePost = async (req: Request, res: Response) => {
   }
 };
 
+// @desc    Get posts by user
+// @route   GET /api/posts/user/:userId
+// @access  Public
+export const getPostsByUser = async (req: Request, res: Response) => {
+  try {
+    const user = await UserModel.findById(req.params.userId);
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    const posts = await PostModel.find({ author: req.params.userId })
+      .populate('author', 'name avatarUrl isTutor hourlyRate rating totalRatings')
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'author',
+          select: 'name avatarUrl isTutor',
+        },
+      })
+      .sort('-createdAt');
+    
+    res.status(200).json({ success: true, data: posts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};

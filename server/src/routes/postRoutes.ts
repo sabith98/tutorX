@@ -7,6 +7,7 @@ import {
   updatePost,
   deletePost,
   likePost,
+  getPostsByUser,
 } from '../controllers/postController';
 import { protect } from '../middleware/auth';
 
@@ -18,5 +19,6 @@ router.post('/', protect, createPost);
 router.put('/:id', protect, updatePost);
 router.delete('/:id', protect, deletePost);
 router.put('/:id/like', protect, likePost);
+router.get('/user/:userId', getPostsByUser);
 
 export default router;
