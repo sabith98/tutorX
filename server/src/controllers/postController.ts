@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { PostModel } from '../models/Post';
 import { z } from 'zod';
+import { CommentModel } from '../models/Comment';
 
 
 // Validation schemas
@@ -121,6 +122,34 @@ export const updatePost = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ success: false, message: error.errors[0].message });
     }
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Delete a post
+// @route   DELETE /api/posts/:id
+// @access  Private
+export const deletePost = async (req: Request, res: Response) => {
+  try {
+    const post = await PostModel.findById(req.params.id);
+    
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+    
+    // Make sure user is post owner
+    if (post.author.toString() !== req.user.id) {
+      return res.status(401).json({ success: false, message: 'Not authorized to delete this post' });
+    }
+    
+    // Delete associated comments
+    await CommentModel.deleteMany({ post: req.params.id });
+    
+    // Delete the post
+    await post.deleteOne();
+    
+    res.status(200).json({ success: true, data: {} });
+  } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
