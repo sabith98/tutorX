@@ -78,6 +78,12 @@ export const authSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
+    updateUserProfile: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+        localStorage.setItem('user', JSON.stringify(state.user));
+      }
+    },
     logoutUser: (state) => {
       state.user = null;
       localStorage.removeItem('user');
@@ -86,7 +92,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setUser, setLoading, logoutUser } = authSlice.actions;
+export const { setUser, setLoading, updateUserProfile, logoutUser } = authSlice.actions;
 
 // Async thunk for login
 export const login = (email: string, password: string) => async (dispatch: any) => {
