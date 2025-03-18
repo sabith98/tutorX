@@ -7,7 +7,7 @@ import cors from "cors";
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import postRoutes from "./routes/postRoutes";
-
+import userRoutes from "./routes/userRoutes";
 
 
 // Connect to MongoDB
@@ -23,6 +23,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/posts",postRoutes);
+app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use(
