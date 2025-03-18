@@ -187,3 +187,38 @@ export const getTutorRatings = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// @desc    Toggle favorite tutor
+// @route   POST /api/users/favorite/:id
+// @access  Private
+export const toggleFavoriteTutor = async (req: Request, res: Response) => {
+  try {
+    const user = await UserModel.findById(req.user.id);
+    const tutor = await UserModel.findById(req.params.id);
+
+    if (!user || !tutor) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (!tutor.isTutor) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Can only favorite tutors" });
+    }
+
+    // Toggle favorite state
+    const isFavorite = !(tutor.favorite || false);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        tutorId: tutor._id,
+        favorite: isFavorite,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
