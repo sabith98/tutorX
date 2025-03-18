@@ -51,3 +51,40 @@ export const addComment = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// @desc    Delete comment
+// @route   DELETE /api/comments/:id
+// @access  Private
+export const deleteComment = async (req: Request, res: Response) => {
+  try {
+    const comment = await CommentModel.findById(req.params.id);
+
+    if (!comment) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
+    }
+
+    // Make sure user is comment owner
+    if (comment.author.toString() !== req.user.id) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Not authorized to delete this comment",
+        });
+    }
+
+    // Remove comment from post's comments array
+    await PostModel.findByIdAndUpdate(comment.post, {
+      $pull: { comments: comment._id },
+    });
+
+    // Delete the comment
+    await comment.deleteOne();
+
+    res.status(200).json({ success: true, data: {} });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
