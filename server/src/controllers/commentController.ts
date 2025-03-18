@@ -67,12 +67,10 @@ export const deleteComment = async (req: Request, res: Response) => {
 
     // Make sure user is comment owner
     if (comment.author.toString() !== req.user.id) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Not authorized to delete this comment",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized to delete this comment",
+      });
     }
 
     // Remove comment from post's comments array
@@ -84,6 +82,21 @@ export const deleteComment = async (req: Request, res: Response) => {
     await comment.deleteOne();
 
     res.status(200).json({ success: true, data: {} });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// @desc    Get comments for a post
+// @route   GET /api/comments/post/:postId
+// @access  Public
+export const getCommentsByPost = async (req: Request, res: Response) => {
+  try {
+    const comments = await CommentModel.find({ post: req.params.postId })
+      .populate("author", "name avatarUrl isTutor")
+      .sort("-createdAt");
+
+    res.status(200).json({ success: true, data: comments });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
   }
