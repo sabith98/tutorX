@@ -22,8 +22,8 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/posts", postRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/posts",postRoutes);
+app.use('/api/users', userRoutes);
 app.use("/api/comments", commentRoutes);
 
 // Error handling middleware
