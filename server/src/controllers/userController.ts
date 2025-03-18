@@ -172,3 +172,18 @@ export const rateTutor = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// @desc    Get ratings for a tutor
+// @route   GET /api/users/:id/ratings
+// @access  Public
+export const getTutorRatings = async (req: Request, res: Response) => {
+  try {
+    const ratings = await RatingModel.find({ tutor: req.params.id })
+      .populate("learner", "name avatarUrl")
+      .sort("-createdAt");
+
+    res.status(200).json({ success: true, data: ratings });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
