@@ -144,3 +144,36 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// @desc    Get current user profile
+// @route   GET /api/auth/me
+// @access  Private
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const user = await UserModel.findById(req.user.id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        isTutor: user.isTutor,
+        hourlyRate: user.hourlyRate,
+        followers: user.followers,
+        following: user.following,
+        bio: user.bio,
+        avatarUrl: user.avatarUrl,
+        rating: user.rating,
+        totalRatings: user.totalRatings,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
