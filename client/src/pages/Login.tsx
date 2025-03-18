@@ -18,9 +18,12 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
-      await dispatch(login(email, password));
-      navigate('/');
+      const resultAction = await dispatch(login({ email, password })).unwrap();
+      if (resultAction) {
+        navigate('/');
+      }
     } catch (error) {
       // Error handling is done in the auth slice
     }

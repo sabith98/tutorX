@@ -22,9 +22,20 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
-      await dispatch(register(name, email, password, isTutor, hourlyRate));
-      navigate('/');
+      const userData = {
+        name,
+        email,
+        password,
+        isTutor,
+        hourlyRate: isTutor ? hourlyRate : undefined
+      };
+      
+      const resultAction = await dispatch(register(userData)).unwrap();
+      if (resultAction) {
+        navigate('/');
+      }
     } catch (error) {
       // Error handling is done in the auth slice
     }
