@@ -1,4 +1,7 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import * as postsService from "@/services/postsService";
+import * as userService from "@/services/userService";
+import { toast } from "sonner";
 
 export interface Author {
   id: string;
@@ -41,116 +44,127 @@ interface PostsState {
   error: string | null;
 }
 
-// Initial state
+// Initial state with empty data that will be fetched from API
 const initialState: PostsState = {
-  posts: [
-    {
-      id: '1',
-      author: {
-        id: '101',
-        name: 'Jane Smith',
-        avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-        isTutor: true,
-        hourlyRate: 50,
-        rating: 4.8,
-        totalRatings: 24,
-      },
-      title: 'Linear Algebra Made Easy',
-      description: 'Understanding matrix operations and their applications in computer science and data analysis.',
-      videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb',
-      likes: 250,
-      comments: [
-        {
-          id: 'c1',
-          postId: '1',
-          author: {
-            id: '102',
-            name: 'Robert Chen',
-            avatarUrl: 'https://randomuser.me/api/portraits/men/67.jpg',
-            isTutor: true,
-          },
-          text: 'This explanation really helped me understand determinants better!',
-          createdAt: '2023-10-15T14:22:00Z',
-        },
-      ],
-      liked: false,
-      followed: false,
-      createdAt: '2023-10-15T14:22:00Z',
-    },
-    {
-      id: '2',
-      author: {
-        id: '102',
-        name: 'Robert Chen',
-        avatarUrl: 'https://randomuser.me/api/portraits/men/67.jpg',
-        isTutor: true,
-        hourlyRate: 65,
-        rating: 4.5,
-        totalRatings: 18,
-      },
-      title: 'Advanced Calculus Techniques',
-      description: 'Mastering differentiation and integration for complex functions with real-world applications.',
-      videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1596496181871-9681eacf9764',
-      likes: 183,
-      comments: [
-        {
-          id: 'c2',
-          postId: '2',
-          author: {
-            id: '103',
-            name: 'Maria Rodriguez',
-            avatarUrl: 'https://randomuser.me/api/portraits/women/23.jpg',
-            isTutor: false,
-          },
-          text: 'Your explanation of integration by parts was so clear!',
-          createdAt: '2023-10-16T09:15:00Z',
-        },
-      ],
-      liked: false,
-      followed: false,
-      createdAt: '2023-10-16T09:15:00Z',
-    },
-    {
-      id: '3',
-      author: {
-        id: '103',
-        name: 'Maria Rodriguez',
-        avatarUrl: 'https://randomuser.me/api/portraits/women/23.jpg',
-        isTutor: false,
-      },
-      title: 'My Journey Learning Data Science',
-      description: 'Sharing my experience transitioning from a non-technical background to data science and machine learning.',
-      videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      thumbnailUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758',
-      likes: 412,
-      comments: [
-        {
-          id: 'c3',
-          postId: '3',
-          author: {
-            id: '101',
-            name: 'Jane Smith',
-            avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-            isTutor: true,
-          },
-          text: "Thanks for sharing your journey! It's inspiring for other career-changers.",
-          createdAt: '2023-10-17T16:45:00Z',
-        },
-      ],
-      liked: false,
-      followed: false,
-      createdAt: '2023-10-17T16:45:00Z',
-    },
-  ],
+  posts: [],
   favoriteTutors: [],
   isLoading: false,
   error: null,
 };
 
+// Async thunks
+export const fetchPosts = createAsyncThunk(
+  "posts/fetchPosts",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await postsService.getPosts();
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch posts"
+      );
+    }
+  }
+);
+
+export const fetchPostsByUser = createAsyncThunk(
+  "posts/fetchPostsByUser",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      return await postsService.getPostsByUser(userId);
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch user posts"
+      );
+    }
+  }
+);
+
+export const createPost = createAsyncThunk(
+  "posts/createPost",
+  async (postData: postsService.CreatePostData, { rejectWithValue }) => {
+    try {
+      return await postsService.createPost(postData);
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create post"
+      );
+    }
+  }
+);
+
+export const likePostAsync = createAsyncThunk(
+  "posts/likePost",
+  async (postId: string, { rejectWithValue }) => {
+    try {
+      const result = await postsService.likePost(postId);
+      return { postId, liked: result.liked };
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to like post"
+      );
+    }
+  }
+);
+
+export const addCommentAsync = createAsyncThunk(
+  "posts/addComment",
+  async (
+    { postId, text }: { postId: string; text: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      return await postsService.addComment(postId, text);
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to add comment"
+      );
+    }
+  }
+);
+
+export const fetchFavoriteTutors = createAsyncThunk(
+  "posts/fetchFavoriteTutors",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await userService.getFavorites();
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch favorite tutors"
+      );
+    }
+  }
+);
+
+export const toggleFavoriteAsync = createAsyncThunk(
+  "posts/toggleFavorite",
+  async (tutorId: string, { rejectWithValue }) => {
+    try {
+      const result = await userService.toggleFavorite(tutorId);
+      return { tutorId, isFavorite: result.isFavorite };
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to toggle favorite"
+      );
+    }
+  }
+);
+
+export const rateTutorAsync = createAsyncThunk(
+  "posts/rateTutor",
+  async (ratingData: userService.RatingData, { rejectWithValue }) => {
+    try {
+      await userService.rateTutor(ratingData);
+      return ratingData;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to rate tutor"
+      );
+    }
+  }
+);
+
 export const postsSlice = createSlice({
-  name: 'posts',
+  name: "posts",
   initialState,
   reducers: {
     setPostsLoading: (state, action: PayloadAction<boolean>) => {
@@ -162,9 +176,12 @@ export const postsSlice = createSlice({
     setPosts: (state, action: PayloadAction<Post[]>) => {
       state.posts = action.payload;
     },
-    likePost: (state, action: PayloadAction<{ postId: string, userId: string }>) => {
-      const { postId, userId } = action.payload;
-      const post = state.posts.find(p => p.id === postId);
+    likePost: (
+      state,
+      action: PayloadAction<{ postId: string; userId: string }>
+    ) => {
+      const { postId } = action.payload;
+      const post = state.posts.find((p) => p.id === postId);
       if (post) {
         if (post.liked) {
           post.likes -= 1;
@@ -176,43 +193,29 @@ export const postsSlice = createSlice({
       }
     },
     addComment: (state, action: PayloadAction<Comment>) => {
-      const post = state.posts.find(p => p.id === action.payload.postId);
+      const post = state.posts.find((p) => p.id === action.payload.postId);
       if (post) {
         post.comments.push(action.payload);
       }
     },
-    followAuthor: (state, action: PayloadAction<{ postId: string, follow: boolean }>) => {
+    followAuthor: (
+      state,
+      action: PayloadAction<{ postId: string; follow: boolean }>
+    ) => {
       const { postId, follow } = action.payload;
-      const post = state.posts.find(p => p.id === postId);
+      const post = state.posts.find((p) => p.id === postId);
       if (post) {
         post.followed = follow;
       }
     },
-    toggleFavorite: (state, action: PayloadAction<{ authorId: string; favorite: boolean }>) => {
-      const { authorId, favorite } = action.payload;
-      
-      // Update in posts
-      state.posts.forEach(post => {
-        if (post.author.id === authorId) {
-          post.author.favorite = favorite;
-        }
-      });
-      
-      // Update favorite tutors list
-      if (favorite) {
-        const authorToAdd = state.posts.find(post => post.author.id === authorId)?.author;
-        if (authorToAdd && !state.favoriteTutors.some(tutor => tutor.id === authorId)) {
-          state.favoriteTutors.push(authorToAdd);
-        }
-      } else {
-        state.favoriteTutors = state.favoriteTutors.filter(tutor => tutor.id !== authorId);
-      }
-    },
-    updateTutorRating: (state, action: PayloadAction<{ tutorId: string, rating: number }>) => {
+    updateTutorRating: (
+      state,
+      action: PayloadAction<{ tutorId: string; rating: number }>
+    ) => {
       const { tutorId, rating } = action.payload;
-      
+
       // Update rating in posts
-      state.posts.forEach(post => {
+      state.posts.forEach((post) => {
         if (post.author.id === tutorId && post.author.isTutor) {
           // Initialize rating and totalRatings if they don't exist
           if (!post.author.rating) {
@@ -220,39 +223,208 @@ export const postsSlice = createSlice({
             post.author.totalRatings = 1;
           } else {
             // Simple averaging calculation
-            const currentTotal = (post.author.rating * (post.author.totalRatings || 1));
+            const currentTotal =
+              post.author.rating * (post.author.totalRatings || 1);
             post.author.totalRatings = (post.author.totalRatings || 0) + 1;
-            post.author.rating = (currentTotal + rating) / post.author.totalRatings;
+            post.author.rating =
+              (currentTotal + rating) / post.author.totalRatings;
           }
         }
       });
-      
+
       // Also update in favoriteTutors if present
-      const favoriteIndex = state.favoriteTutors.findIndex(tutor => tutor.id === tutorId);
+      const favoriteIndex = state.favoriteTutors.findIndex(
+        (tutor) => tutor.id === tutorId
+      );
       if (favoriteIndex >= 0) {
         const tutor = state.favoriteTutors[favoriteIndex];
         if (!tutor.rating) {
           tutor.rating = rating;
           tutor.totalRatings = 1;
         } else {
-          const currentTotal = (tutor.rating * (tutor.totalRatings || 1));
+          const currentTotal = tutor.rating * (tutor.totalRatings || 1);
           tutor.totalRatings = (tutor.totalRatings || 0) + 1;
           tutor.rating = (currentTotal + rating) / tutor.totalRatings;
         }
       }
-    }
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch Posts
+      .addCase(fetchPosts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.posts = action.payload;
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        toast.error(state.error || "Failed to fetch posts");
+      })
+
+      // Fetch Posts by User
+      .addCase(fetchPostsByUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchPostsByUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // We're not replacing all posts, just showing user posts in a specific view
+      })
+      .addCase(fetchPostsByUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        toast.error(state.error || "Failed to fetch user posts");
+      })
+
+      // Create Post
+      .addCase(createPost.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createPost.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.posts.unshift(action.payload);
+        toast.success("Post created successfully");
+      })
+      .addCase(createPost.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        toast.error(state.error || "Failed to create post");
+      })
+
+      // Like Post
+      .addCase(likePostAsync.fulfilled, (state, action) => {
+        const { postId, liked } = action.payload;
+        const post = state.posts.find((p) => p.id === postId);
+        if (post) {
+          post.liked = liked;
+          post.likes = liked ? post.likes + 1 : post.likes - 1;
+        }
+      })
+      .addCase(likePostAsync.rejected, (state, action) => {
+        toast.error((action.payload as string) || "Failed to like post");
+      })
+
+      // Add Comment
+      .addCase(addCommentAsync.fulfilled, (state, action) => {
+        const comment = action.payload;
+        const post = state.posts.find((p) => p.id === comment.postId);
+        if (post) {
+          post.comments.push(comment);
+        }
+        toast.success("Comment added");
+      })
+      .addCase(addCommentAsync.rejected, (state, action) => {
+        toast.error((action.payload as string) || "Failed to add comment");
+      })
+
+      // Fetch Favorite Tutors
+      .addCase(fetchFavoriteTutors.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchFavoriteTutors.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.favoriteTutors = action.payload;
+      })
+      .addCase(fetchFavoriteTutors.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      // Toggle Favorite
+      .addCase(toggleFavoriteAsync.fulfilled, (state, action) => {
+        const { tutorId, isFavorite } = action.payload;
+
+        // Update favorite status in posts
+        state.posts.forEach((post) => {
+          if (post.author.id === tutorId) {
+            post.author.favorite = isFavorite;
+          }
+        });
+
+        // Update favorite tutors list
+        if (isFavorite) {
+          const authorToAdd = state.posts.find(
+            (post) => post.author.id === tutorId
+          )?.author;
+          if (
+            authorToAdd &&
+            !state.favoriteTutors.some((tutor) => tutor.id === tutorId)
+          ) {
+            state.favoriteTutors.push(authorToAdd);
+          }
+        } else {
+          state.favoriteTutors = state.favoriteTutors.filter(
+            (tutor) => tutor.id !== tutorId
+          );
+        }
+
+        toast.success(
+          isFavorite ? "Added to favorites" : "Removed from favorites"
+        );
+      })
+      .addCase(toggleFavoriteAsync.rejected, (state, action) => {
+        toast.error((action.payload as string) || "Failed to update favorites");
+      })
+
+      // Rate Tutor
+      .addCase(rateTutorAsync.fulfilled, (state, action) => {
+        const { tutorId, rating } = action.payload;
+
+        // Update rating in posts and favorites using the existing reducer
+        state.posts.forEach((post) => {
+          if (post.author.id === tutorId && post.author.isTutor) {
+            if (!post.author.rating) {
+              post.author.rating = rating;
+              post.author.totalRatings = 1;
+            } else {
+              const currentTotal =
+                post.author.rating * (post.author.totalRatings || 1);
+              post.author.totalRatings = (post.author.totalRatings || 0) + 1;
+              post.author.rating =
+                (currentTotal + rating) / post.author.totalRatings;
+            }
+          }
+        });
+
+        // Also update in favoriteTutors if present
+        const favoriteIndex = state.favoriteTutors.findIndex(
+          (tutor) => tutor.id === tutorId
+        );
+        if (favoriteIndex >= 0) {
+          const tutor = state.favoriteTutors[favoriteIndex];
+          if (!tutor.rating) {
+            tutor.rating = rating;
+            tutor.totalRatings = 1;
+          } else {
+            const currentTotal = tutor.rating * (tutor.totalRatings || 1);
+            tutor.totalRatings = (tutor.totalRatings || 0) + 1;
+            tutor.rating = (currentTotal + rating) / tutor.totalRatings;
+          }
+        }
+
+        toast.success("Rating submitted successfully");
+      })
+      .addCase(rateTutorAsync.rejected, (state, action) => {
+        toast.error((action.payload as string) || "Failed to submit rating");
+      });
   },
 });
 
-export const { 
-  setPostsLoading, 
-  setPostsError, 
-  setPosts, 
-  likePost, 
-  addComment, 
+export const {
+  setPostsLoading,
+  setPostsError,
+  setPosts,
+  likePost,
+  addComment,
   followAuthor,
-  toggleFavorite,
-  updateTutorRating
+  updateTutorRating,
 } = postsSlice.actions;
 
 export default postsSlice.reducer;
