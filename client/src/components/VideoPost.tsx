@@ -1,19 +1,41 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Heart, MessageCircle, Share2, UserPlus, DollarSign, 
-  Send, X, Twitter, Facebook, Linkedin, Link as LinkIcon,
-  ChevronDown, ChevronUp, Star
-} from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { likePost, addComment, followAuthor, toggleFavorite, Post } from '@/store/slices/postsSlice';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  UserPlus,
+  DollarSign,
+  Send,
+  X,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Link as LinkIcon,
+  ChevronDown,
+  ChevronUp,
+  Star,
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import {
+  likePost,
+  addComment,
+  followAuthor,
+  toggleFavoriteAsync,
+  Post,
+} from "@/store/slices/postsSlice";
+import { toast } from "sonner";
 import {
   Popover,
   PopoverContent,
@@ -35,51 +57,57 @@ type VideoPostProps = {
 };
 
 export function VideoPost({ post }: VideoPostProps) {
-  const { user } = useAppSelector(state => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
-  
+
   const handleLike = () => {
     if (!user) {
-      toast.error('Please login to like posts');
+      toast.error("Please login to like posts");
       return;
     }
-    
+
     dispatch(likePost({ postId: post.id, userId: user.id }));
   };
 
   const handleFollow = () => {
     if (!user) {
-      toast.error('Please login to follow users');
+      toast.error("Please login to follow users");
       return;
     }
-    
+
     dispatch(followAuthor({ postId: post.id, follow: !post.followed }));
-    toast.success(post.followed ? `Unfollowed ${post.author.name}` : `Following ${post.author.name}`);
+    toast.success(
+      post.followed
+        ? `Unfollowed ${post.author.name}`
+        : `Following ${post.author.name}`
+    );
   };
 
   const handleHire = () => {
     if (!user) {
-      toast.error('Please login to hire tutors');
+      toast.error("Please login to hire tutors");
       return;
     }
-    
+
     navigate(`/hire/${post.author.id}`);
   };
 
   const handleFavorite = () => {
     if (!user) {
-      toast.error('Please login to add favorites');
+      toast.error("Please login to add favorites");
       return;
     }
-    
-    dispatch(toggleFavorite({ authorId: post.author.id, favorite: !post.author.favorite }));
-    toast.success(post.author.favorite ? 
-      `Removed ${post.author.name} from favorites` : 
-      `Added ${post.author.name} to favorites`);
+
+    dispatch(toggleFavoriteAsync(post.author.id));
+    toast.success(
+      post.author.favorite
+        ? `Removed ${post.author.name} from favorites`
+        : `Added ${post.author.name} to favorites`
+    );
   };
 
   const navigateToProfile = () => {
@@ -89,43 +117,43 @@ export function VideoPost({ post }: VideoPostProps) {
   const handleShareURL = () => {
     const url = `${window.location.origin}/post/${post.id}`;
     navigator.clipboard.writeText(url);
-    toast.success('Link copied to clipboard');
+    toast.success("Link copied to clipboard");
   };
 
   const handleShareSocial = (platform: string) => {
     const url = encodeURIComponent(`${window.location.origin}/post/${post.id}`);
     const text = encodeURIComponent(`Check out this tutorial: ${post.title}`);
-    
-    let shareUrl = '';
-    
+
+    let shareUrl = "";
+
     switch (platform) {
-      case 'twitter':
+      case "twitter":
         shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
         break;
-      case 'facebook':
+      case "facebook":
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
         break;
-      case 'linkedin':
+      case "linkedin":
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
         break;
     }
-    
+
     if (shareUrl) {
-      window.open(shareUrl, '_blank');
+      window.open(shareUrl, "_blank");
     }
   };
 
   const handleSubmitComment = () => {
     if (!user) {
-      toast.error('Please login to comment');
+      toast.error("Please login to comment");
       return;
     }
-    
+
     if (!commentText.trim()) {
-      toast.error('Comment cannot be empty');
+      toast.error("Comment cannot be empty");
       return;
     }
-    
+
     const newComment = {
       id: Date.now().toString(),
       postId: post.id,
@@ -138,11 +166,11 @@ export function VideoPost({ post }: VideoPostProps) {
       text: commentText,
       createdAt: new Date().toISOString(),
     };
-    
+
     dispatch(addComment(newComment));
-    setCommentText('');
+    setCommentText("");
     setShowComments(true);
-    toast.success('Comment added successfully');
+    toast.success("Comment added successfully");
   };
 
   return (
@@ -155,21 +183,32 @@ export function VideoPost({ post }: VideoPostProps) {
         <CardHeader className="p-4 pb-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Link to={`/user/${post.author.id}`}>
+              <Link to={`/user/${post?.author?.id}`}>
                 <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary transition-all">
-                  <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                  <AvatarImage
+                    src={post?.author?.avatarUrl}
+                    alt={post?.author?.name}
+                  />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {post.author.name.split(' ').map(n => n[0]).join('')}
+                    {post?.author?.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </AvatarFallback>
                 </Avatar>
               </Link>
               <div>
-                <Link to={`/user/${post.author.id}`} className="hover:underline">
-                  <h3 className="font-medium text-sm">{post.author.name}</h3>
+                <Link
+                  to={`/user/${post?.author?.id}`}
+                  className="hover:underline"
+                >
+                  <h3 className="font-medium text-sm">{post?.author?.name}</h3>
                 </Link>
                 <p className="text-xs text-muted-foreground">
-                  {post.author.isTutor ? 'Tutor' : 'Learner'}
-                  {post.author.isTutor && post.author.hourlyRate && ` • $${post.author.hourlyRate}/hr`}
+                  {post?.author?.isTutor ? "Tutor" : "Learner"}
+                  {post?.author?.isTutor &&
+                    post?.author?.hourlyRate &&
+                    ` • $${post?.author?.hourlyRate}/hr`}
                 </p>
               </div>
             </div>
@@ -177,24 +216,34 @@ export function VideoPost({ post }: VideoPostProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className={`h-8 w-8 p-0 ${post.author.favorite ? 'text-yellow-500' : ''}`}
+                className={`h-8 w-8 p-0 ${
+                  post?.author?.favorite ? "text-yellow-500" : ""
+                }`}
                 onClick={handleFavorite}
-                title={post.author.favorite ? "Remove from favorites" : "Add to favorites"}
+                title={
+                  post?.author?.favorite
+                    ? "Remove from favorites"
+                    : "Add to favorites"
+                }
               >
-                <Star className={`h-5 w-5 ${post.author.favorite ? 'fill-yellow-500' : ''}`} />
+                <Star
+                  className={`h-5 w-5 ${
+                    post?.author?.favorite ? "fill-yellow-500" : ""
+                  }`}
+                />
               </Button>
-              
+
               <Button
                 size="sm"
-                variant={post.followed ? "default" : "outline"}
+                variant={post?.followed ? "default" : "outline"}
                 className="h-8 px-3 rounded-full"
                 onClick={handleFollow}
               >
                 <UserPlus className="h-4 w-4 mr-1" />
-                {post.followed ? 'Following' : 'Follow'}
+                {post?.followed ? "Following" : "Follow"}
               </Button>
-              
-              {post.author.isTutor && (
+
+              {post?.author?.isTutor && (
                 <Button
                   size="sm"
                   variant="outline"
@@ -207,18 +256,20 @@ export function VideoPost({ post }: VideoPostProps) {
               )}
             </div>
           </div>
-          
+
           <div className="mt-3">
-            <h2 className="text-base font-medium">{post.title}</h2>
-            <p className="text-sm text-muted-foreground mt-1">{post.description}</p>
+            <h2 className="text-base font-medium">{post?.title}</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {post?.description}
+            </p>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-4">
           <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
             {isPlaying ? (
-              <video 
-                src={post.videoUrl} 
+              <video
+                src={post?.videoUrl}
                 className="w-full h-full object-cover"
                 controls
                 autoPlay
@@ -227,8 +278,8 @@ export function VideoPost({ post }: VideoPostProps) {
             ) : (
               <div className="relative w-full h-full">
                 <img
-                  src={post.thumbnailUrl}
-                  alt={post.title}
+                  src={post?.thumbnailUrl}
+                  alt={post?.title}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -249,7 +300,11 @@ export function VideoPost({ post }: VideoPostProps) {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       whileHover={{ scale: 1.2 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 10,
+                      }}
                     >
                       <polygon points="5 3 19 12 5 21 5 3" />
                     </motion.svg>
@@ -259,7 +314,7 @@ export function VideoPost({ post }: VideoPostProps) {
             )}
           </div>
         </CardContent>
-        
+
         <CardFooter className="p-4 pt-0 flex-col">
           <div className="flex items-center justify-between w-full mb-3">
             <div className="flex items-center space-x-4">
@@ -269,10 +324,14 @@ export function VideoPost({ post }: VideoPostProps) {
                 className="flex items-center space-x-1 h-9"
                 onClick={handleLike}
               >
-                <Heart className={`h-5 w-5 ${post.liked ? 'fill-red-500 text-red-500' : ''}`} />
-                <span>{post.likes}</span>
+                <Heart
+                  className={`h-5 w-5 ${
+                    post?.liked ? "fill-red-500 text-red-500" : ""
+                  }`}
+                />
+                <span>{post?.likes}</span>
               </Button>
-              
+
               <Button
                 size="sm"
                 variant="ghost"
@@ -280,7 +339,7 @@ export function VideoPost({ post }: VideoPostProps) {
                 onClick={() => setShowComments(!showComments)}
               >
                 <MessageCircle className="h-5 w-5" />
-                <span>{post.comments.length}</span>
+                <span>{post?.comments.length}</span>
                 {showComments ? (
                   <ChevronUp className="h-4 w-4" />
                 ) : (
@@ -288,14 +347,10 @@ export function VideoPost({ post }: VideoPostProps) {
                 )}
               </Button>
             </div>
-            
+
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-9"
-                >
+                <Button size="sm" variant="ghost" className="h-9">
                   <Share2 className="h-5 w-5" />
                 </Button>
               </PopoverTrigger>
@@ -303,34 +358,34 @@ export function VideoPost({ post }: VideoPostProps) {
                 <div className="grid gap-2">
                   <h4 className="font-medium text-sm">Share</h4>
                   <div className="grid grid-cols-4 gap-1">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-9 w-9" 
-                      onClick={() => handleShareSocial('twitter')}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => handleShareSocial("twitter")}
                     >
                       <Twitter className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-9 w-9" 
-                      onClick={() => handleShareSocial('facebook')}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => handleShareSocial("facebook")}
                     >
                       <Facebook className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-9 w-9" 
-                      onClick={() => handleShareSocial('linkedin')}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => handleShareSocial("linkedin")}
                     >
                       <Linkedin className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-9 w-9" 
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
                       onClick={handleShareURL}
                     >
                       <LinkIcon className="h-4 w-4" />
@@ -351,16 +406,29 @@ export function VideoPost({ post }: VideoPostProps) {
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <label htmlFor="recipient" className="text-sm font-medium">
+                          <label
+                            htmlFor="recipient"
+                            className="text-sm font-medium"
+                          >
                             Recipient Email
                           </label>
-                          <Input id="recipient" placeholder="Enter email address" />
+                          <Input
+                            id="recipient"
+                            placeholder="Enter email address"
+                          />
                         </div>
                         <div className="space-y-2">
-                          <label htmlFor="message" className="text-sm font-medium">
+                          <label
+                            htmlFor="message"
+                            className="text-sm font-medium"
+                          >
                             Message (optional)
                           </label>
-                          <Textarea id="message" placeholder="Check out this video!" className="min-h-[100px]" />
+                          <Textarea
+                            id="message"
+                            placeholder="Check out this video!"
+                            className="min-h-[100px]"
+                          />
                         </div>
                       </div>
                       <DialogFooter className="sm:justify-between">
@@ -370,9 +438,11 @@ export function VideoPost({ post }: VideoPostProps) {
                             Cancel
                           </Button>
                         </DialogClose>
-                        <Button 
-                          className="h-8" 
-                          onClick={() => toast.success('Video shared via email')}
+                        <Button
+                          className="h-8"
+                          onClick={() =>
+                            toast.success("Video shared via email")
+                          }
                         >
                           <Send className="h-4 w-4 mr-1" />
                           Send
@@ -384,59 +454,74 @@ export function VideoPost({ post }: VideoPostProps) {
               </PopoverContent>
             </Popover>
           </div>
-          
+
           {showComments && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
               className="w-full mt-2 space-y-4"
             >
               <div className="border-t pt-3">
-                <h3 className="font-medium text-sm mb-2">Comments ({post.comments.length})</h3>
-                
+                <h3 className="font-medium text-sm mb-2">
+                  Comments ({post?.comments.length})
+                </h3>
+
                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                  {post.comments.map((comment) => (
+                  {post?.comments.map((comment) => (
                     <div key={comment.id} className="flex space-x-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={comment.author.avatarUrl} alt={comment.author.name} />
+                        <AvatarImage
+                          src={comment?.author?.avatarUrl}
+                          alt={comment?.author?.name}
+                        />
                         <AvatarFallback className="text-xs">
-                          {comment.author.name.split(' ').map(n => n[0]).join('')}
+                          {comment?.author?.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="bg-muted p-2 rounded-md">
                           <div className="flex justify-between items-start">
                             <span className="font-medium text-xs">
-                              {comment.author.name}
-                              {comment.author.isTutor && (
-                                <span className="text-primary ml-1">• Tutor</span>
+                              {comment?.author?.name}
+                              {comment?.author?.isTutor && (
+                                <span className="text-primary ml-1">
+                                  • Tutor
+                                </span>
                               )}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {new Date(comment.createdAt).toLocaleDateString()}
+                              {new Date(
+                                comment?.createdAt
+                              ).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-sm mt-1">{comment.text}</p>
+                          <p className="text-sm mt-1">{comment?.text}</p>
                         </div>
                       </div>
                     </div>
                   ))}
-                  
-                  {post.comments.length === 0 && (
+
+                  {post?.comments.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">
                       No comments yet. Be the first to comment!
                     </p>
                   )}
                 </div>
-                
+
                 {user && (
                   <div className="flex items-center space-x-2 mt-3">
                     <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={user.avatarUrl} alt={user.name} />
+                      <AvatarImage src={user?.avatarUrl} alt={user?.name} />
                       <AvatarFallback className="text-xs">
-                        {user.name.split(' ').map(n => n[0]).join('')}
+                        {user?.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 flex items-center space-x-2">
@@ -446,13 +531,17 @@ export function VideoPost({ post }: VideoPostProps) {
                         onChange={(e) => setCommentText(e.target.value)}
                         className="h-9"
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
+                          if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
                             handleSubmitComment();
                           }
                         }}
                       />
-                      <Button size="sm" className="h-9" onClick={handleSubmitComment}>
+                      <Button
+                        size="sm"
+                        className="h-9"
+                        onClick={handleSubmitComment}
+                      >
                         <Send className="h-4 w-4" />
                       </Button>
                     </div>
